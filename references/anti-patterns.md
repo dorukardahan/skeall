@@ -269,3 +269,19 @@ Read the config at /Users/john/.claude/skills/my-skill/config.json
 # GOOD
 Read the config at references/config.json (relative to this SKILL.md)
 ```
+
+### 21. Time-sensitive information
+
+Instructions that expire or change meaning over time. Common with API versions, migration deadlines, and feature flags.
+
+```markdown
+# BAD -- becomes wrong after the deadline passes
+If you're doing this before August 2025, use the old API endpoint.
+After August 2025, switch to v2.
+
+# GOOD -- version-based, not date-based
+Use API v2 (`/api/v2/`). If the codebase still uses v1 imports,
+migrate them: `import { client } from '@sdk/v2'`.
+```
+
+**Fix:** Use version numbers or feature detection instead of dates. If dates are unavoidable, add: "Check the official docs for current migration status."

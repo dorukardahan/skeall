@@ -27,12 +27,13 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 ### Process
 
-1. Interview the user (ask questions 1-3 first, then 4-5 if needed):
+1. Interview the user (ask questions 1-4 first, then 5-6 if needed):
    - What does this skill do? (one sentence)
+   - What category? Reference (knowledge/conventions) / Task (step-by-step workflow) / MCP Enhancement / Hybrid. See [references/advanced-patterns.md](references/advanced-patterns.md) for category details.
    - What triggers should activate it? (keywords users would type)
    - Does it accept arguments? (e.g., file path, topic — use `$ARGUMENTS` in body)
    - How complex is it? (single file vs references/ needed)
-   - Any existing docs/code to incorporate?
+   - Will this skill be shared? (personal / project / public) — affects README, license, metadata
 
 2. Generate the skill structure:
 
@@ -210,7 +211,7 @@ skill-name/
 | Guideline | Limit |
 |-----------|-------|
 | SKILL.md body | Under 500 lines (under 300 for complex skills with many references) |
-| Reference files | No hard limit, but keep each under 700 lines |
+| Reference files | No hard limit, but keep each under 700 lines. Add TOC at top if over 100 lines |
 
 ---
 
@@ -298,6 +299,9 @@ These patterns come from real cross-platform testing. Apply them when creating o
 - **Imperative verbs**: "Call X after Y", "Use Z for W"
 - **Compact routing table** at the top pointing to reference files
 - **Parameter comments inline** in code blocks: `providerAddress, // 1st: wallet address`
+- **Copyable progress checklists** for multi-step workflows (LLM tracks completion)
+- **Validation feedback loops** for quality-sensitive output (generate, score, retry if needed)
+- **Consistent freedom level** per section — do not mix exact scripts with vague guidance. See [references/advanced-patterns.md](references/advanced-patterns.md)
 
 ### Do not
 
@@ -350,6 +354,10 @@ These fields are silently ignored by platforms that don't support them:
 ```yaml
 user-invocable: true          # OpenClaw: enables manual invocation
 ```
+
+### Codex-specific extensions
+
+OpenAI Codex adds an optional `openai.yaml` file alongside SKILL.md for platform metadata (`interface`, `policy`, `dependencies`). SKILL.md itself stays cross-platform. See [references/advanced-patterns.md](references/advanced-patterns.md) for details.
 
 ### Things that break cross-platform
 
@@ -462,6 +470,12 @@ For detailed testing patterns and example test prompts, see [references/testing.
 
 ---
 
+## MCP integration
+
+If a skill wraps MCP tools, always use fully qualified tool names (`mcp__server__tool_name`). Document required MCP servers and provide fallbacks for platforms without MCP. See [references/advanced-patterns.md](references/advanced-patterns.md) for naming patterns and dependency documentation.
+
+---
+
 ## Reprompter integration (optional)
 
 When creating a skill (`--create` mode), optionally use reprompter to optimize:
@@ -483,3 +497,4 @@ For detailed checklists and examples, see:
 - [Complete SKILL.md template](references/template.md)
 - [Scoring methodology details](references/scoring.md)
 - [Testing patterns and examples](references/testing.md)
+- [Advanced patterns: categories, freedom levels, distribution, MCP, workflows](references/advanced-patterns.md)
