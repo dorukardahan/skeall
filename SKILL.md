@@ -27,11 +27,11 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 ### Process
 
-1. Interview the user (ask questions 1-4 first, then 5-6 if needed):
+1. Interview the user (ask questions 1-4 always, then 5-6 if user hasn't already specified complexity or distribution scope):
    - What does this skill do? (one sentence)
-   - What category? Reference (knowledge/conventions) / Task (step-by-step workflow) / MCP Enhancement / Hybrid. See [references/advanced-patterns.md](references/advanced-patterns.md) for category details.
+   - What category? Reference / Task / MCP Enhancement / Hybrid. See [references/advanced-patterns.md](references/advanced-patterns.md)
    - What triggers should activate it? (keywords users would type)
-   - Does it accept arguments? (e.g., file path, topic — use `$ARGUMENTS` in body)
+   - Does it accept arguments? (e.g., file path, topic — use `$ARGUMENTS` or `$ARGUMENTS[N]` in body)
    - How complex is it? (single file vs references/ needed)
    - Will this skill be shared? (personal / project / public) — affects README, license, metadata
 
@@ -100,7 +100,7 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 ```text
 ## Skill Audit: {skill-name}
 
-Score: X/10
+Score: X.X/10
 
 STRUCTURE
   [PASS] S1 -- SKILL.md exists at root
@@ -119,6 +119,10 @@ LLM-FRIENDLINESS
   [WARN] L4 MEDIUM -- Unicode arrows instead of markdown tables
   [PASS] L3 -- No emoji markers in headings
 
+SECURITY
+  [PASS] SEC1 -- No XML angle brackets in frontmatter
+  [PASS] SEC3 -- No hardcoded secrets
+
 CROSS-PLATFORM
   [PASS] X1 -- No {baseDir} placeholders
   [WARN] X4 LOW -- No multi-platform install instructions in README
@@ -136,6 +140,7 @@ Total: 3 HIGH | 4 MEDIUM | 1 LOW
 | Empty directory for `--scan-all` | "No skills found in {dir}. Skills must have a SKILL.md file." |
 | Invalid YAML frontmatter | Report the parse error, suggest fixing frontmatter first |
 | `--improve` on non-skill file | "Not a valid skill (no YAML frontmatter). Try `--create` instead." |
+| `--improve` on a skill scoring 10/10 | "Scan found 0 issues (score 10.0/10). No changes needed. Consider running trigger and functional tests." |
 
 ---
 
@@ -171,16 +176,20 @@ description: What this skill does and when to use it. Include trigger phrases.
 These are silently ignored by platforms that do not support them:
 
 ```yaml
-license: MIT                   # For distributed skills
-compatibility: "Node.js 18+"  # Environment requirements (max 500 chars)
-metadata:                      # Arbitrary key-value (author, version)
+license: MIT                          # For distributed skills
+compatibility: "Node.js 18+"         # Environment requirements (max 500 chars)
+metadata:                             # Arbitrary key-value (author, version)
   author: your-name
   version: 1.0.0
-allowed-tools: "Bash Read"    # Experimental: space-delimited tool list
-user-invocable: true           # Claude Code/OpenClaw: manual /skill invocation
-argument-hint: "<file-path>"   # Claude Code: hint shown in autocomplete
-context: fork                  # Claude Code: run in isolated subagent
-agent: general-purpose         # Claude Code: subagent type (Explore, Plan, etc.)
+allowed-tools: "Bash Read"           # Experimental: space-delimited tool list
+user-invocable: true                  # Show in /slash menu (false = hidden but still callable)
+disable-model-invocation: true        # Block Claude from auto-loading this skill
+argument-hint: "<file-path>"          # Hint shown in /skill autocomplete
+model: opus                           # Override model for this skill
+context: fork                         # Run in isolated subagent
+agent: general-purpose                # Subagent type: general-purpose, Explore, Plan, or custom
+hooks:                                # Skill-scoped lifecycle hooks
+  PostToolCall: "validate.sh"
 ```
 
 ### Directory structure
@@ -251,7 +260,7 @@ skill-name/
 | C4 | HIGH | Code examples use correct, verified patterns |
 | C5 | MEDIUM | Instruction-based framing (not "You are an expert") |
 | C6 | MEDIUM | Has routing table to reference files (if references/ exists) |
-| C7 | MEDIUM | Troubleshooting section present (for technical skills) |
+| C7 | MEDIUM | Troubleshooting section present (for skills with code blocks or CLI commands) |
 | C8 | LOW | No deprecated content at the top (wastes prime token space) |
 
 ### LLM-friendliness checks
@@ -336,7 +345,6 @@ description: 0G Compute Network guide for decentralized AI inference and fine-tu
 ### Universal format (works everywhere)
 
 Only `name` and `description` in frontmatter. Standard markdown body. Relative paths. No platform-specific syntax.
-
 ### Platform discovery paths
 
 | Platform | User-wide | Project |
@@ -346,14 +354,6 @@ Only `name` and `description` in frontmatter. Standard markdown body. Relative p
 | OpenClaw | `~/.openclaw/skills/{name}/` | `.openclaw/skills/{name}/` |
 | Cursor | Standard SKILL.md discovery | Project skills dir |
 | Gemini CLI | Standard SKILL.md discovery | Project skills dir |
-
-### Safe optional additions
-
-These fields are silently ignored by platforms that don't support them:
-
-```yaml
-user-invocable: true          # OpenClaw: enables manual invocation
-```
 
 ### Codex-specific extensions
 

@@ -2,6 +2,18 @@
 
 Patterns for complex skills: categories, instruction freedom, distribution, MCP integration, and workflow design.
 
+## Contents
+
+- [Skill categories](#skill-categories)
+- [Degrees of freedom](#degrees-of-freedom)
+- [Distribution](#distribution)
+- [MCP integration](#mcp-integration)
+- [Workflow patterns](#workflow-patterns)
+- [OpenAI Codex extensions](#openai-codex-extensions)
+- [Reference file structure](#reference-file-structure)
+
+---
+
 ## Skill categories
 
 Classify your skill before writing it. Category affects structure and frontmatter choices.

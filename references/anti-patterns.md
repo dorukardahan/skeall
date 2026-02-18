@@ -2,6 +2,17 @@
 
 Real examples from auditing and restructuring production skills. Each pattern includes before/after text.
 
+## Contents
+
+- [Structure anti-patterns](#structure-anti-patterns) (#1-3)
+- [Frontmatter anti-patterns](#frontmatter-anti-patterns) (#4-6)
+- [Content anti-patterns](#content-anti-patterns) (#7-10)
+- [LLM-friendliness anti-patterns](#llm-friendliness-anti-patterns) (#11-17)
+- [Cross-platform anti-patterns](#cross-platform-anti-patterns) (#18-21)
+- [Maintenance anti-patterns](#maintenance-anti-patterns) (#22-23)
+
+---
+
 ## Structure anti-patterns
 
 ### 1. Flat file layout (no references/ directory)
@@ -285,3 +296,42 @@ migrate them: `import { client } from '@sdk/v2'`.
 ```
 
 **Fix:** Use version numbers or feature detection instead of dates. If dates are unavoidable, add: "Check the official docs for current migration status."
+
+---
+
+## Maintenance anti-patterns
+
+### 22. Unverified claim placeholders
+
+Placeholder markers left in published skills. LLMs may include them in generated output or treat them as real data.
+
+```markdown
+# BAD -- placeholders shipped to users
+The API processes 10,000 requests per second [source needed].
+Average latency is 50ms [TODO: verify].
+
+# GOOD -- either verify or remove
+The API processes 10,000 requests per second (measured via load test, Jan 2026).
+```
+
+**Fix:** Search all skill files for `[source needed]`, `[TODO]`, `[TBD]`, `[verify]`, `[citation needed]` before publishing.
+
+### 23. Non-standard reference directory
+
+Using a directory name other than `references/` for on-demand detail files. Other tools and platforms expect `references/`.
+
+```text
+# BAD -- non-standard path
+my-skill/
+├── SKILL.md
+└── docs/references/
+    └── guide.md
+
+# GOOD -- standard path
+my-skill/
+├── SKILL.md
+└── references/
+    └── guide.md
+```
+
+**Fix:** Move files to `references/` at skill root. Update all internal links.

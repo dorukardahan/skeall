@@ -46,7 +46,7 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 | Security | 4 | No XML injection, no reserved names, no secrets |
 | Cross-platform | 4 | No baseDir, relative paths, standard links |
 
-Plus 21 documented anti-patterns with before/after examples.
+Plus 23 documented anti-patterns with before/after examples.
 
 ## Scoring
 
@@ -65,7 +65,7 @@ Base score: 10. Deductions: HIGH (-1.5), MEDIUM (-0.5, capped at -3), LOW (-0.2,
 skeall/
 ├── SKILL.md                    # Core skill (always loaded)
 ├── references/
-│   ├── anti-patterns.md        # 20 anti-patterns with before/after
+│   ├── anti-patterns.md        # 23 anti-patterns with before/after
 │   ├── template.md             # Copy-paste SKILL.md template
 │   ├── scoring.md              # Scoring methodology details
 │   ├── testing.md              # Testing patterns and examples
