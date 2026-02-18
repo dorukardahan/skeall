@@ -1,11 +1,9 @@
 ---
 name: skeall
 description: |
-  Build, improve, and audit Agent Skills (SKILL.md) for cross-platform LLM coding agents.
-  Follows the Agent Skills open standard (agentskills.io). Use when user says
-  "skeall", "build a skill", "create skill", "improve skill", "audit skill",
-  "skill review", "SKILL.md", or needs help writing instructions for AI coding agents.
-  Supports Claude Code, OpenAI Codex, Cursor, Gemini CLI, OpenClaw, VS Code, Roo Code.
+  Agent Skills (SKILL.md) builder, auditor, and improver for cross-platform LLM agents.
+  Use for "skeall", "build a skill", "create skill", "improve skill", "audit skill",
+  "skill review", or any SKILL.md question. Follows agentskills.io standard.
 ---
 
 # Skeall
@@ -14,8 +12,8 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 ## Quick start
 
-```
-/skeall --create              # Interview → scaffold new skill
+```text
+/skeall --create              # Interview, then scaffold new skill
 /skeall --improve <path>      # Analyze and improve existing skill
 /skeall --scan <path>         # Audit only, no changes (report)
 /skeall --scan .              # Audit skill in current directory
@@ -29,7 +27,7 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 ### Process
 
-1. Interview the user (max 5 questions):
+1. Interview the user (ask questions 1-3 first, then 4-5 if needed):
    - What does this skill do? (one sentence)
    - What triggers should activate it? (keywords users would type)
    - How complex is it? (single file vs references/ needed)
@@ -38,7 +36,7 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 2. Generate the skill structure:
 
-```
+```text
 {skill-name}/
 ├── SKILL.md                    # Core instructions (always loaded)
 ├── references/                 # On-demand detail files
@@ -53,7 +51,11 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
    - Instruction-based framing, not persona-based
    - Progressive disclosure: core in SKILL.md, details in references/
 
-4. Run `--scan` on the generated skill to verify compliance.
+4. Show the generated SKILL.md to user for review.
+
+5. Run `--scan` on the generated skill. If any HIGH issues found, fix them before delivering.
+
+**Next step:** "Optimize with reprompter?" (optional, see Reprompter section). Then suggest installing the skill.
 
 ---
 
@@ -61,13 +63,15 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 ### Process
 
-1. Read the entire SKILL.md and all reference files.
+1. Read SKILL.md first. Read reference files only if scan identifies issues requiring them (broken links, routing table mismatches).
 2. Run the scan checklist (see Mode 3).
 3. For each issue found, propose a specific before/after edit.
 4. Group edits by priority: HIGH first, then MEDIUM, then LOW.
-5. Ask user: "Fix all? Review one by one? Or just the HIGHs?"
+5. Ask user: "Fix all? Review one by one? Or just the HIGHs?" (recommended: fix all HIGHs automatically, review MEDIUMs)
 6. Apply approved edits.
-7. Re-scan to verify fixes.
+7. Re-scan once. If new issues appear, report them but do not enter an infinite fix loop.
+
+**Next step:** "Run `--scan` to verify?" or "Commit changes?"
 
 ### Common improvements
 
@@ -92,34 +96,45 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 
 ### Report format
 
-```
+```text
 ## Skill Audit: {skill-name}
 
 Score: X/10
 
 STRUCTURE
-  [PASS] SKILL.md exists at root
-  [FAIL] HIGH — Body exceeds 500 lines (current: 612)
-  [WARN] MEDIUM — No references/ directory
+  [PASS] S1 -- SKILL.md exists at root
+  [FAIL] S3 HIGH -- name does not match directory name
+  [WARN] S5 MEDIUM -- No references/ directory
 
 FRONTMATTER
-  [PASS] name field present and valid
-  [FAIL] HIGH — description over 300 characters
+  [PASS] F2 -- Trigger phrases present
+  [FAIL] F1 HIGH -- description over 1024 characters
 
 CONTENT
-  [WARN] MEDIUM — Persona-based framing ("You are an expert")
-  [FAIL] HIGH — Same content repeated 3 times (lines 45, 120, 280)
+  [WARN] C5 MEDIUM -- Persona-based framing ("You are an expert")
+  [FAIL] C3 HIGH -- Same content repeated 3 times (lines 45, 120, 280)
 
 LLM-FRIENDLINESS
-  [WARN] MEDIUM — Unicode arrows instead of markdown tables
-  [PASS] No emoji markers in headings
+  [WARN] L4 MEDIUM -- Unicode arrows instead of markdown tables
+  [PASS] L3 -- No emoji markers in headings
 
 CROSS-PLATFORM
-  [PASS] No {baseDir} placeholders
-  [WARN] LOW — No multi-platform install instructions in README
+  [PASS] X1 -- No {baseDir} placeholders
+  [WARN] X4 LOW -- No multi-platform install instructions in README
 
 Total: 3 HIGH | 4 MEDIUM | 1 LOW
 ```
+
+**Next step after scan:** "Want me to fix these? Run `/skeall --improve <path>`"
+
+### Error handling
+
+| Input | Response |
+|-------|----------|
+| No SKILL.md found at path | "No skill found at {path}. Did you mean `--create`?" |
+| Empty directory for `--scan-all` | "No skills found in {dir}. Skills must have a SKILL.md file." |
+| Invalid YAML frontmatter | Report the parse error, suggest fixing frontmatter first |
+| `--improve` on non-skill file | "Not a valid skill (no YAML frontmatter). Try `--create` instead." |
 
 ---
 
@@ -135,26 +150,40 @@ description: What this skill does and when to use it. Include trigger phrases.
 ```
 
 **name rules:**
-- Lowercase alphanumeric with hyphens only
+- Must match the parent directory name
+- Lowercase alphanumeric with hyphens only (unicode lowercase allowed)
+- 1-64 characters, no leading/trailing/consecutive hyphens
 - No spaces, no special characters
-- Under 50 characters
 
 **description rules:**
 - Explain WHAT it does AND WHEN to use it
 - Include trigger phrases users would actually type
 - Put the most important keyword first (platforms weight first words)
-- Keep under 200 characters for best matching, max 300
+- Spec limit: 1024 characters. Recommended: under 300 for best matching
 - Use noun-phrase style ("Guide for X"), not persona style ("Expert in X")
+
+### Optional frontmatter fields
+
+These are silently ignored by platforms that do not support them:
+
+```yaml
+license: MIT                   # For distributed skills
+compatibility: "Node.js 18+"  # Environment requirements (max 500 chars)
+metadata:                      # Arbitrary key-value (author, version)
+  author: your-name
+  version: 1.0.0
+allowed-tools: "Bash Read"    # Experimental: space-delimited tool list
+```
 
 ### Directory structure
 
-```
+```text
 skill-name/
-├── SKILL.md           # REQUIRED — core instructions
-├── references/        # OPTIONAL — on-demand detail files
-├── scripts/           # OPTIONAL — executable scripts
-├── assets/            # OPTIONAL — static assets (images, etc.)
-└── README.md          # OPTIONAL — GitHub-facing docs
+├── SKILL.md           # REQUIRED -- core instructions
+├── references/        # OPTIONAL -- on-demand detail files
+├── scripts/           # OPTIONAL -- executable scripts
+├── assets/            # OPTIONAL -- static assets (images, etc.)
+└── README.md          # OPTIONAL -- GitHub-facing docs
 ```
 
 ### Token budget
@@ -186,20 +215,22 @@ skill-name/
 |----|----------|-------|
 | S1 | HIGH | SKILL.md exists at skill root |
 | S2 | HIGH | YAML frontmatter present with `---` delimiters |
-| S3 | HIGH | `name` field present and valid (lowercase, hyphens, no spaces) |
+| S3 | HIGH | `name` field present and valid (lowercase, hyphens, 1-64 chars, no consecutive hyphens) |
 | S4 | HIGH | `description` field present |
 | S5 | MEDIUM | References in `references/` not loose at root |
 | S6 | LOW | README.md present for GitHub-hosted skills |
 | S7 | LOW | No unnecessary files (node_modules, .DS_Store, etc.) |
+| S8 | HIGH | `name` field matches parent directory name |
 
 ### Frontmatter checks
 
 | ID | Severity | Check |
 |----|----------|-------|
-| F1 | HIGH | Description under 300 characters |
+| F1 | HIGH | Description under 1024 characters (spec limit) |
+| F1b | LOW | Description under 300 characters (recommended for matching) |
 | F2 | HIGH | Description includes trigger phrases |
 | F3 | MEDIUM | Description starts with noun phrase, not "Expert in" |
-| F4 | MEDIUM | Name under 50 characters |
+| F4 | MEDIUM | Name 1-64 characters, no leading/trailing/consecutive hyphens |
 | F5 | LOW | No platform-specific fields (keeps universal compatibility) |
 
 ### Content checks
@@ -208,7 +239,7 @@ skill-name/
 |----|----------|-------|
 | C1 | HIGH | Body under 500 lines |
 | C2 | HIGH | Estimated tokens under 5000 |
-| C3 | HIGH | No content repeated more than once |
+| C3 | HIGH | No content repeated in SKILL.md body (controlled repetition across reference files is acceptable) |
 | C4 | HIGH | Code examples use correct, verified patterns |
 | C5 | MEDIUM | Instruction-based framing (not "You are an expert") |
 | C6 | MEDIUM | Has routing table to reference files (if references/ exists) |
@@ -265,7 +296,7 @@ These patterns come from real cross-platform testing. Apply them when creating o
 ### Description field optimization
 
 Good description pattern:
-```
+```text
 {Product/Tool name} guide for {primary use case}. Covers {feature list}.
 Use this skill for {trigger phrases separated by commas}.
 ```
@@ -352,58 +383,69 @@ Scan every skill in a directory at once. Useful for auditing your entire skill c
 ### Process
 
 1. List all subdirectories containing SKILL.md in the target path (default: `~/.claude/skills/`).
-2. Run Mode 3 (scan) on each skill.
-3. Output a summary table.
+2. Run Mode 3 (scan) on each skill. Output each skill's score as you complete it.
+3. Output a summary table sorted by score ascending (worst first).
 
 ### Report format
 
-```
+```text
 ## Batch Skill Audit
 
 | Skill | Score | HIGH | MEDIUM | LOW | Status |
 |-------|-------|------|--------|-----|--------|
-| humanizer-enhanced | 8/10 | 0 | 2 | 1 | PASS |
-| reprompter | 6/10 | 2 | 3 | 0 | NEEDS WORK |
-| blogger | 7/10 | 1 | 1 | 2 | PASS |
 | seo-optimizer | 5/10 | 3 | 2 | 1 | NEEDS WORK |
+| reprompter | 6/10 | 2 | 3 | 0 | NEEDS WORK |
+| blogger | 7/10 | 1 | 1 | 2 | NEEDS WORK |
+| humanizer-enhanced | 8/10 | 0 | 2 | 1 | PASS |
 
 Total: 4 skills scanned
-PASS: 2 | NEEDS WORK: 2
+PASS: 1 | NEEDS WORK: 3
 
 Top issues across all skills:
-1. [HIGH] reprompter: Body exceeds 5000 tokens (est. 8,200)
-2. [HIGH] seo-optimizer: Content repeated 4 times
-3. [HIGH] reprompter: Persona-based framing
+1. [HIGH] C2 reprompter: Body exceeds 5000 tokens (est. 8,200)
+2. [HIGH] C3 seo-optimizer: Content repeated 4 times
+3. [HIGH] C5 reprompter: Persona-based framing
 ```
 
 **PASS threshold:** Score 7+ with zero HIGH issues.
+
+**Next step:** "Start with the lowest-scoring skill. Run `/skeall --improve <path>` on it."
 
 ---
 
 ## Scoring methodology
 
-Each scan checklist item has a severity weight. The score is calculated as:
+**Formula:** `Score = max(0, 10 - (HIGHs x 1.5) - min(MEDIUMs x 0.5, 3) - min(LOWs x 0.2, 1))`
 
-| Severity | Weight per issue | Max deduction |
-|----------|-----------------|---------------|
-| HIGH | -1.5 points | No cap |
-| MEDIUM | -0.5 points | -3 max |
-| LOW | -0.2 points | -1 max |
-
-**Base score: 10.** Subtract weighted deductions. Floor at 0.
-
-| Score | Rating |
-|-------|--------|
-| 9-10 | Excellent |
-| 7-8 | Good (PASS) |
-| 5-6 | Needs work |
-| 0-4 | Major rewrite needed |
-
-For detailed scoring examples, see [references/scoring.md](references/scoring.md).
+**PASS threshold:** Score 7+ AND zero HIGH issues. For detailed examples, see [references/scoring.md](references/scoring.md).
 
 ---
 
-## Reprompter integration
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Token estimate seems wrong | Use `wc -w` and multiply by 1.5 (prose) or 1.7 (code-heavy) |
+| Scan reports FAIL but skill works fine | HIGHs indicate spec/LLM issues, not runtime bugs. Fix them anyway. |
+| Batch scan misses a skill | Skill directory must contain SKILL.md at root |
+| Two fixes contradict each other | Flag the conflict, ask user to choose (e.g., "shorten file" vs "add section") |
+| Score 7+ but still NEEDS WORK | Check for HIGH issues. Any HIGH = NEEDS WORK regardless of score |
+
+---
+
+## Testing your skill
+
+After creating or improving a skill, test three things:
+
+1. **Trigger testing:** Does the skill activate on expected phrases? Try 3-5 variations of trigger keywords.
+2. **Functional testing:** Does the skill produce correct output? Run the main workflow end-to-end.
+3. **Negative testing:** Does the skill stay quiet on irrelevant queries? Try unrelated prompts.
+
+For detailed testing patterns and example test prompts, see [references/testing.md](references/testing.md).
+
+---
+
+## Reprompter integration (optional)
 
 When creating a skill (`--create` mode), optionally use reprompter to optimize:
 
@@ -423,3 +465,4 @@ For detailed checklists and examples, see:
 - [Anti-patterns with before/after examples](references/anti-patterns.md)
 - [Complete SKILL.md template](references/template.md)
 - [Scoring methodology details](references/scoring.md)
+- [Testing patterns and examples](references/testing.md)
