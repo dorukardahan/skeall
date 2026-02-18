@@ -1,0 +1,425 @@
+---
+name: skeall
+description: |
+  Build, improve, and audit Agent Skills (SKILL.md) for cross-platform LLM coding agents.
+  Follows the Agent Skills open standard (agentskills.io). Use when user says
+  "skeall", "build a skill", "create skill", "improve skill", "audit skill",
+  "skill review", "SKILL.md", or needs help writing instructions for AI coding agents.
+  Supports Claude Code, OpenAI Codex, Cursor, Gemini CLI, OpenClaw, VS Code, Roo Code.
+---
+
+# Skeall
+
+Create, improve, and audit Agent Skills following the [Agent Skills open standard](https://agentskills.io). This skill encodes lessons from real-world skill development and cross-platform compatibility testing.
+
+## Quick start
+
+```
+/skeall --create              # Interview → scaffold new skill
+/skeall --improve <path>      # Analyze and improve existing skill
+/skeall --scan <path>         # Audit only, no changes (report)
+/skeall --scan .              # Audit skill in current directory
+/skeall --scan-all            # Batch scan all skills in ~/.claude/skills/
+/skeall --scan-all <dir>      # Batch scan all skills in custom directory
+```
+
+---
+
+## Mode 1: Create (scaffold a new skill)
+
+### Process
+
+1. Interview the user (max 5 questions):
+   - What does this skill do? (one sentence)
+   - What triggers should activate it? (keywords users would type)
+   - How complex is it? (single file vs references/ needed)
+   - Target audience: which LLM platforms?
+   - Any existing docs/code to incorporate?
+
+2. Generate the skill structure:
+
+```
+{skill-name}/
+├── SKILL.md                    # Core instructions (always loaded)
+├── references/                 # On-demand detail files
+│   ├── {topic-1}.md
+│   └── {topic-2}.md
+└── README.md                   # GitHub-facing (optional)
+```
+
+3. Write SKILL.md following these rules:
+   - YAML frontmatter with `name` and `description` (see Frontmatter section)
+   - Body under 500 lines, under 5000 tokens
+   - Instruction-based framing, not persona-based
+   - Progressive disclosure: core in SKILL.md, details in references/
+
+4. Run `--scan` on the generated skill to verify compliance.
+
+---
+
+## Mode 2: Improve (refactor existing skill)
+
+### Process
+
+1. Read the entire SKILL.md and all reference files.
+2. Run the scan checklist (see Mode 3).
+3. For each issue found, propose a specific before/after edit.
+4. Group edits by priority: HIGH first, then MEDIUM, then LOW.
+5. Ask user: "Fix all? Review one by one? Or just the HIGHs?"
+6. Apply approved edits.
+7. Re-scan to verify fixes.
+
+### Common improvements
+
+| Problem | Fix |
+|---------|-----|
+| Body over 5000 tokens | Move detail sections to references/ |
+| Redundant content | Single source of truth, reference elsewhere |
+| Persona-based framing | Switch to instruction-based framing |
+| Missing trigger phrases | Add keywords to description field |
+| Platform-specific patterns | Replace with universal formatting |
+| No progressive disclosure | Add routing table to reference files |
+
+---
+
+## Mode 3: Scan (audit and report)
+
+### Process
+
+1. Read the skill's SKILL.md and directory structure.
+2. Check every item in the checklist below.
+3. Output a severity-tagged report.
+
+### Report format
+
+```
+## Skill Audit: {skill-name}
+
+Score: X/10
+
+STRUCTURE
+  [PASS] SKILL.md exists at root
+  [FAIL] HIGH — Body exceeds 500 lines (current: 612)
+  [WARN] MEDIUM — No references/ directory
+
+FRONTMATTER
+  [PASS] name field present and valid
+  [FAIL] HIGH — description over 300 characters
+
+CONTENT
+  [WARN] MEDIUM — Persona-based framing ("You are an expert")
+  [FAIL] HIGH — Same content repeated 3 times (lines 45, 120, 280)
+
+LLM-FRIENDLINESS
+  [WARN] MEDIUM — Unicode arrows instead of markdown tables
+  [PASS] No emoji markers in headings
+
+CROSS-PLATFORM
+  [PASS] No {baseDir} placeholders
+  [WARN] LOW — No multi-platform install instructions in README
+
+Total: 3 HIGH | 4 MEDIUM | 1 LOW
+```
+
+---
+
+## Agent Skills spec reference
+
+### Frontmatter (required)
+
+```yaml
+---
+name: my-skill-name
+description: What this skill does and when to use it. Include trigger phrases.
+---
+```
+
+**name rules:**
+- Lowercase alphanumeric with hyphens only
+- No spaces, no special characters
+- Under 50 characters
+
+**description rules:**
+- Explain WHAT it does AND WHEN to use it
+- Include trigger phrases users would actually type
+- Put the most important keyword first (platforms weight first words)
+- Keep under 200 characters for best matching, max 300
+- Use noun-phrase style ("Guide for X"), not persona style ("Expert in X")
+
+### Directory structure
+
+```
+skill-name/
+├── SKILL.md           # REQUIRED — core instructions
+├── references/        # OPTIONAL — on-demand detail files
+├── scripts/           # OPTIONAL — executable scripts
+├── assets/            # OPTIONAL — static assets (images, etc.)
+└── README.md          # OPTIONAL — GitHub-facing docs
+```
+
+### Token budget
+
+| Level | Content | Budget |
+|-------|---------|--------|
+| Metadata (YAML frontmatter) | name + description | ~100 tokens |
+| Instructions (SKILL.md body) | Always loaded by LLM | < 5000 tokens |
+| References (each file) | Loaded on demand | ~2000-3000 tokens each |
+
+**Estimation:** ~1.5 tokens per word for mixed code+prose markdown.
+
+**Progressive disclosure:** SKILL.md body should handle ~70% of user requests. Reference files handle the remaining 30% (detailed workflows, complete examples, edge cases).
+
+### Line limits
+
+| Guideline | Limit |
+|-----------|-------|
+| SKILL.md body | Under 500 lines (under 300 for complex skills with many references) |
+| Reference files | No hard limit, but keep each under 700 lines |
+
+---
+
+## Scan checklist
+
+### Structure checks
+
+| ID | Severity | Check |
+|----|----------|-------|
+| S1 | HIGH | SKILL.md exists at skill root |
+| S2 | HIGH | YAML frontmatter present with `---` delimiters |
+| S3 | HIGH | `name` field present and valid (lowercase, hyphens, no spaces) |
+| S4 | HIGH | `description` field present |
+| S5 | MEDIUM | References in `references/` not loose at root |
+| S6 | LOW | README.md present for GitHub-hosted skills |
+| S7 | LOW | No unnecessary files (node_modules, .DS_Store, etc.) |
+
+### Frontmatter checks
+
+| ID | Severity | Check |
+|----|----------|-------|
+| F1 | HIGH | Description under 300 characters |
+| F2 | HIGH | Description includes trigger phrases |
+| F3 | MEDIUM | Description starts with noun phrase, not "Expert in" |
+| F4 | MEDIUM | Name under 50 characters |
+| F5 | LOW | No platform-specific fields (keeps universal compatibility) |
+
+### Content checks
+
+| ID | Severity | Check |
+|----|----------|-------|
+| C1 | HIGH | Body under 500 lines |
+| C2 | HIGH | Estimated tokens under 5000 |
+| C3 | HIGH | No content repeated more than once |
+| C4 | HIGH | Code examples use correct, verified patterns |
+| C5 | MEDIUM | Instruction-based framing (not "You are an expert") |
+| C6 | MEDIUM | Has routing table to reference files (if references/ exists) |
+| C7 | MEDIUM | Troubleshooting section present (for technical skills) |
+| C8 | LOW | No deprecated content at the top (wastes prime token space) |
+
+### LLM-friendliness checks
+
+| ID | Severity | Check |
+|----|----------|-------|
+| L1 | HIGH | Tables for structured data (not bullet lists with arrows) |
+| L2 | HIGH | Imperative instructions ("Do X", not "You should consider X") |
+| L3 | MEDIUM | No emoji in headings or structural markers |
+| L4 | MEDIUM | No Unicode arrows or special characters for data flow |
+| L5 | MEDIUM | Consistent heading hierarchy (no skipped levels) |
+| L6 | MEDIUM | Code blocks have language tags |
+| L7 | LOW | Sentence case headings (not Title Case) |
+| L8 | LOW | No nested blockquotes (some LLMs parse poorly) |
+
+### Cross-platform checks
+
+| ID | Severity | Check |
+|----|----------|-------|
+| X1 | HIGH | No `{baseDir}` placeholders (breaks non-OpenClaw platforms) |
+| X2 | MEDIUM | Relative paths from SKILL.md to references/ |
+| X3 | MEDIUM | Internal links use standard markdown `[text](path)` |
+| X4 | LOW | README has multi-platform install paths |
+
+---
+
+## LLM-friendliness patterns
+
+These patterns come from real cross-platform testing. Apply them when creating or improving skills.
+
+### Do
+
+- **Tables over prose** for structured data (parameters, options, comparisons)
+- **Single source of truth** for any concept explained more than once
+- **Instruction-based framing**: "This skill provides instructions for X. Follow these patterns exactly."
+- **Imperative verbs**: "Call X after Y", "Use Z for W"
+- **Compact routing table** at the top pointing to reference files
+- **Parameter comments inline** in code blocks: `providerAddress, // 1st: wallet address`
+
+### Do not
+
+- **Persona-based framing**: "You are an expert in..." (Claude-leaning, other LLMs respond better to instructions)
+- **Emoji markers** in headings or structural elements (token-expensive, parsed inconsistently)
+- **Unicode arrows** (→, ←) for data flow — use tables or plain prose
+- **Blockquote warnings at top** of SKILL.md (wastes prime token space, primes distrust)
+- **"When Users Ask" checklists** with 10+ items (bury critical rules, use tables instead)
+- **Synonym cycling** for the same concept (confuses LLMs about whether it's the same thing)
+- **Repeated content** (wastes tokens, risks contradictions if copies drift)
+
+### Description field optimization
+
+Good description pattern:
+```
+{Product/Tool name} guide for {primary use case}. Covers {feature list}.
+Use this skill for {trigger phrases separated by commas}.
+```
+
+Example:
+```yaml
+description: 0G Compute Network guide for decentralized AI inference and fine-tuning.
+  Covers chatbots, image generation, speech-to-text, SDK integration, CLI commands.
+  Use this skill for any 0G compute, 0G AI, or decentralized GPU question.
+```
+
+---
+
+## Cross-platform compatibility
+
+### Universal format (works everywhere)
+
+Only `name` and `description` in frontmatter. Standard markdown body. Relative paths. No platform-specific syntax.
+
+### Platform discovery paths
+
+| Platform | User-wide | Project |
+|----------|-----------|---------|
+| Claude Code | `~/.claude/skills/{name}/` | `.claude/skills/{name}/` |
+| OpenAI Codex | `~/.agents/skills/{name}/` | `.agents/skills/{name}/` |
+| OpenClaw | `~/.openclaw/skills/{name}/` | `.openclaw/skills/{name}/` |
+| Cursor | Standard SKILL.md discovery | Project skills dir |
+| Gemini CLI | Standard SKILL.md discovery | Project skills dir |
+
+### Safe optional additions
+
+These fields are silently ignored by platforms that don't support them:
+
+```yaml
+user-invocable: true          # OpenClaw: enables manual invocation
+```
+
+### Things that break cross-platform
+
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| `{baseDir}` placeholder | Only OpenClaw resolves it | Use relative paths |
+| Platform-specific instructions | Confuse other LLMs | Keep instructions generic |
+| Hardcoded paths | Break on other OS/platforms | Use relative from SKILL.md |
+
+---
+
+## Token estimation
+
+Quick method to estimate tokens for a markdown file:
+
+```bash
+# Word count × 1.5 = approximate tokens
+wc -w SKILL.md
+# Example: 1,200 words × 1.5 = ~1,800 tokens
+```
+
+For code-heavy files, use 1.7x multiplier (code has more tokens per word).
+
+### Budget allocation guide
+
+| Skill complexity | SKILL.md target | References needed? |
+|-----------------|-----------------|-------------------|
+| Simple (one topic, few commands) | 100-200 lines / ~1500 tokens | No |
+| Medium (multiple features, some code) | 200-350 lines / ~3000 tokens | 1-2 files |
+| Complex (multi-domain, many patterns) | 300-450 lines / ~4500 tokens | 3-5 files |
+
+---
+
+## Severity reference
+
+| Severity | Meaning | Action |
+|----------|---------|--------|
+| HIGH | Breaks spec compliance or causes LLM confusion | Must fix |
+| MEDIUM | Reduces quality or cross-platform compatibility | Should fix |
+| LOW | Minor improvement opportunity | Fix if time permits |
+
+---
+
+## Mode 4: Batch scan (scan-all)
+
+Scan every skill in a directory at once. Useful for auditing your entire skill collection.
+
+### Process
+
+1. List all subdirectories containing SKILL.md in the target path (default: `~/.claude/skills/`).
+2. Run Mode 3 (scan) on each skill.
+3. Output a summary table.
+
+### Report format
+
+```
+## Batch Skill Audit
+
+| Skill | Score | HIGH | MEDIUM | LOW | Status |
+|-------|-------|------|--------|-----|--------|
+| humanizer-enhanced | 8/10 | 0 | 2 | 1 | PASS |
+| reprompter | 6/10 | 2 | 3 | 0 | NEEDS WORK |
+| blogger | 7/10 | 1 | 1 | 2 | PASS |
+| seo-optimizer | 5/10 | 3 | 2 | 1 | NEEDS WORK |
+
+Total: 4 skills scanned
+PASS: 2 | NEEDS WORK: 2
+
+Top issues across all skills:
+1. [HIGH] reprompter: Body exceeds 5000 tokens (est. 8,200)
+2. [HIGH] seo-optimizer: Content repeated 4 times
+3. [HIGH] reprompter: Persona-based framing
+```
+
+**PASS threshold:** Score 7+ with zero HIGH issues.
+
+---
+
+## Scoring methodology
+
+Each scan checklist item has a severity weight. The score is calculated as:
+
+| Severity | Weight per issue | Max deduction |
+|----------|-----------------|---------------|
+| HIGH | -1.5 points | No cap |
+| MEDIUM | -0.5 points | -3 max |
+| LOW | -0.2 points | -1 max |
+
+**Base score: 10.** Subtract weighted deductions. Floor at 0.
+
+| Score | Rating |
+|-------|--------|
+| 9-10 | Excellent |
+| 7-8 | Good (PASS) |
+| 5-6 | Needs work |
+| 0-4 | Major rewrite needed |
+
+For detailed scoring examples, see [references/scoring.md](references/scoring.md).
+
+---
+
+## Reprompter integration
+
+When creating a skill (`--create` mode), optionally use reprompter to optimize:
+
+1. **Description field**: After the interview, generate 3 description variants using reprompter's quality scoring. Pick the highest-scoring one.
+2. **Core rules**: Draft the rules, then score them for clarity and specificity. Target 8+/10.
+3. **Code examples**: If the skill has code patterns, reprompter validates they are specific and imperative.
+
+This is optional. If reprompter skill is not installed, skeall works standalone.
+
+To enable: after the create interview, say "reprompter optimize" or answer "yes" when skeall asks "Optimize with reprompter?"
+
+---
+
+## References
+
+For detailed checklists and examples, see:
+- [Anti-patterns with before/after examples](references/anti-patterns.md)
+- [Complete SKILL.md template](references/template.md)
+- [Scoring methodology details](references/scoring.md)
