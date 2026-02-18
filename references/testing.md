@@ -64,6 +64,35 @@ for test in test_prompts:
     assert test["expect_contains"] in response
 ```
 
+## Evaluation-driven development
+
+Build test scenarios BEFORE writing skill instructions. This is the single most effective practice from Anthropic's guide.
+
+### The workflow
+
+1. **Identify gaps** -- what queries should the skill handle?
+2. **Create test scenarios** -- 3-5 input/expected-output pairs
+3. **Baseline** -- try the queries WITHOUT the skill to see default behavior
+4. **Write minimal** -- add just enough instructions to pass the tests
+5. **Iterate** -- run tests again, tighten instructions where needed
+
+### Claude A/B pattern
+
+Use two Claude sessions:
+- **Claude A** writes/edits the skill
+- **Claude B** tests the skill in a fresh session (no context bleed)
+
+This prevents the "works because I just wrote it" bias.
+
+### Cross-model testing
+
+Test with all Claude model tiers you plan to support:
+- **Haiku** needs more explicit, step-by-step instructions
+- **Sonnet** handles moderate ambiguity
+- **Opus** can work with less prescriptive guidance
+
+If your skill must work across models, aim for instructions clear enough for Haiku.
+
 ## Testing checklist
 
 Use this after creating or improving a skill:
@@ -76,6 +105,8 @@ Use this after creating or improving a skill:
 | 4 | Error cases produce helpful messages | |
 | 5 | Output contains no hallucinated paths or APIs | |
 | 6 | Skill works with the target LLM platform(s) | |
+| 7 | Tested with at least 2 model tiers (e.g., Haiku + Opus) | |
+| 8 | Test scenarios created BEFORE skill instructions were written | |
 
 ## Common testing pitfalls
 

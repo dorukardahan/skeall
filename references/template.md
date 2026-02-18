@@ -70,13 +70,16 @@ For {variations/advanced usage}, see [references/{detail}.md](references/{detail
 
 After filling in the template, verify:
 
-- [ ] Name is lowercase with hyphens, under 50 chars
-- [ ] Description includes trigger phrases, under 300 chars
+- [ ] Name is lowercase with hyphens, 1-64 chars, no leading/trailing/consecutive hyphens
+- [ ] Name matches parent directory name
+- [ ] Description under 1024 chars (spec limit); ideally under 300 for best matching
+- [ ] Description includes trigger phrases
 - [ ] Body is under 500 lines
 - [ ] Core rules section has 3-5 items max
 - [ ] One canonical code example in SKILL.md (detailed examples in references/)
 - [ ] Routing table points to reference files
 - [ ] Tables used for structured data (not bullet lists)
 - [ ] No emoji in headings
+- [ ] All code blocks have language tags
 - [ ] No persona-based framing
 - [ ] Troubleshooting section present

@@ -8,7 +8,7 @@ Real examples from auditing and restructuring production skills. Each pattern in
 
 All .md files dumped at skill root instead of organized in references/.
 
-```
+```text
 # BAD
 my-skill/
 ├── SKILL.md
@@ -66,9 +66,9 @@ description: React and Node.js development guide. Covers component patterns,
   Next.js, Express, or full-stack JavaScript question.
 ```
 
-### 5. Description too long (over 300 chars)
+### 5. Description too long (spec limit 1024 chars, recommended under 300)
 
-Some platforms truncate descriptions for matching. Long descriptions bury trigger phrases.
+Over 1024 breaks spec compliance (HIGH). Over 300 hurts matching on some platforms (LOW). Long descriptions bury trigger phrases.
 
 ### 6. Missing trigger phrases
 

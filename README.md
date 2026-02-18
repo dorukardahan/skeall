@@ -26,7 +26,7 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 
 ## Usage
 
-```
+```text
 /skeall --create              # Interview + scaffold new skill
 /skeall --improve <path>      # Analyze and improve existing skill
 /skeall --scan <path>         # Audit only, severity-tagged report
@@ -35,14 +35,15 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 
 ## What it checks
 
-27 checklist items across 4 categories:
+38 checklist items across 6 categories:
 
 | Category | Checks | Examples |
 |----------|--------|---------|
-| Structure | 7 | SKILL.md exists, references/ dir, no junk files |
-| Frontmatter | 5 | Description length, trigger phrases, naming |
+| Structure | 8 | SKILL.md exists, name matches dir, references/ dir, no junk files |
+| Frontmatter | 6 | Description length (spec + recommended), trigger phrases, naming |
 | Content | 8 | Token budget, redundancy, framing style |
 | LLM-friendliness | 8 | Tables vs bullets, emoji, heading style |
+| Security | 4 | No XML injection, no reserved names, no secrets |
 | Cross-platform | 4 | No baseDir, relative paths, standard links |
 
 Plus 20 documented anti-patterns with before/after examples.
@@ -60,13 +61,14 @@ Base score: 10. Deductions: HIGH (-1.5), MEDIUM (-0.5, capped at -3), LOW (-0.2,
 
 ## Structure
 
-```
+```text
 skeall/
 ├── SKILL.md                    # Core skill (always loaded)
 ├── references/
 │   ├── anti-patterns.md        # 20 anti-patterns with before/after
 │   ├── template.md             # Copy-paste SKILL.md template
-│   └── scoring.md              # Scoring methodology details
+│   ├── scoring.md              # Scoring methodology details
+│   └── testing.md              # Testing patterns and examples
 └── README.md                   # This file
 ```
 

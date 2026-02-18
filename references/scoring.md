@@ -25,28 +25,28 @@ Base score: **10 points**. Each checklist failure deducts points based on severi
 ## Example calculations
 
 ### Example 1: Clean skill
-```
-HIGHs: 0  → -0
-MEDIUMs: 2 → -1.0
-LOWs: 3   → -0.6
+```text
+HIGHs: 0  = -0.0
+MEDIUMs: 2 = -1.0
+LOWs: 3   = -0.6
 
 Score = 10 - 0 - 1.0 - 0.6 = 8.4/10 (Good)
 ```
 
 ### Example 2: Typical first draft
-```
-HIGHs: 2  → -3.0
-MEDIUMs: 4 → -2.0
-LOWs: 1   → -0.2
+```text
+HIGHs: 2  = -3.0
+MEDIUMs: 4 = -2.0
+LOWs: 1   = -0.2
 
 Score = 10 - 3.0 - 2.0 - 0.2 = 4.8/10 (Poor)
 ```
 
 ### Example 3: Monolithic skill
-```
-HIGHs: 5  → -7.5
-MEDIUMs: 6 → -3.0 (capped)
-LOWs: 4   → -0.8
+```text
+HIGHs: 5  = -7.5
+MEDIUMs: 6 = -3.0 (capped)
+LOWs: 4   = -0.8
 
 Score = 10 - 7.5 - 3.0 - 0.8 = 0/10 (floor) (Major rewrite)
 ```

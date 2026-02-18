@@ -30,8 +30,8 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 1. Interview the user (ask questions 1-3 first, then 4-5 if needed):
    - What does this skill do? (one sentence)
    - What triggers should activate it? (keywords users would type)
+   - Does it accept arguments? (e.g., file path, topic — use `$ARGUMENTS` in body)
    - How complex is it? (single file vs references/ needed)
-   - Target audience: which LLM platforms?
    - Any existing docs/code to incorporate?
 
 2. Generate the skill structure:
@@ -153,14 +153,17 @@ description: What this skill does and when to use it. Include trigger phrases.
 - Must match the parent directory name
 - Lowercase alphanumeric with hyphens only (unicode lowercase allowed)
 - 1-64 characters, no leading/trailing/consecutive hyphens
-- No spaces, no special characters
+- No spaces, no special characters, no reserved words ("anthropic", "claude")
+- Recommended: gerund form (`processing-pdfs`, `testing-code`) or descriptive noun (`pdf-processor`)
 
 **description rules:**
 - Explain WHAT it does AND WHEN to use it
+- Write in third person ("Processes files", not "I can process" or "You can use")
 - Include trigger phrases users would actually type
 - Put the most important keyword first (platforms weight first words)
 - Spec limit: 1024 characters. Recommended: under 300 for best matching
 - Use noun-phrase style ("Guide for X"), not persona style ("Expert in X")
+- No XML angle brackets (`<`, `>`) in any frontmatter value (injection risk)
 
 ### Optional frontmatter fields
 
@@ -173,6 +176,10 @@ metadata:                      # Arbitrary key-value (author, version)
   author: your-name
   version: 1.0.0
 allowed-tools: "Bash Read"    # Experimental: space-delimited tool list
+user-invocable: true           # Claude Code/OpenClaw: manual /skill invocation
+argument-hint: "<file-path>"   # Claude Code: hint shown in autocomplete
+context: fork                  # Claude Code: run in isolated subagent
+agent: general-purpose         # Claude Code: subagent type (Explore, Plan, etc.)
 ```
 
 ### Directory structure
@@ -259,6 +266,15 @@ skill-name/
 | L7 | LOW | Sentence case headings (not Title Case) |
 | L8 | LOW | No nested blockquotes (some LLMs parse poorly) |
 
+### Security checks
+
+| ID | Severity | Check |
+|----|----------|-------|
+| SEC1 | HIGH | No XML angle brackets (`<`, `>`) in frontmatter values |
+| SEC2 | HIGH | Name does not contain reserved words ("anthropic", "claude") |
+| SEC3 | HIGH | No hardcoded API keys, tokens, or secrets in any skill file |
+| SEC4 | MEDIUM | Scripts include error handling (not bare commands) |
+
 ### Cross-platform checks
 
 | ID | Severity | Check |
@@ -292,6 +308,7 @@ These patterns come from real cross-platform testing. Apply them when creating o
 - **"When Users Ask" checklists** with 10+ items (bury critical rules, use tables instead)
 - **Synonym cycling** for the same concept (confuses LLMs about whether it's the same thing)
 - **Repeated content** (wastes tokens, risks contradictions if copies drift)
+- **Assuming exclusive activation** (other skills may load simultaneously — declare dependencies explicitly)
 
 ### Description field optimization
 
