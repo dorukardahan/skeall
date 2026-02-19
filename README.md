@@ -10,6 +10,7 @@ Skeall encodes real-world lessons from building and restructuring production ski
 - **Improve** existing skills with specific before/after edit proposals
 - **Scan** skills for spec compliance, LLM-friendliness, and cross-platform issues
 - **Batch scan** your entire skill collection at once
+- **Health check** runtime issues that static scan misses: orphans, duplicates, broken deps, stale endpoints
 
 ## Installation
 
@@ -31,11 +32,13 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 /skeall --improve <path>      # Analyze and improve existing skill
 /skeall --scan <path>         # Audit only, severity-tagged report
 /skeall --scan-all            # Batch scan all skills
+/skeall --healthcheck <path>  # Runtime check single skill
+/skeall --healthcheck-all     # Runtime check all skills
 ```
 
 ## What it checks
 
-42 checklist items across 6 categories:
+**Static scan:** 42 checklist items across 6 categories:
 
 | Category | Checks | Examples |
 |----------|--------|---------|
@@ -46,7 +49,19 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 | Security | 5 | No XML injection, no reserved names, no secrets, credential pattern detection |
 | Cross-platform | 4 | No baseDir, relative paths, standard links |
 
-Plus 29 documented anti-patterns with before/after examples.
+**Runtime health check:** 7 additional checks that static scan cannot catch:
+
+| Check | What it catches |
+|-------|----------------|
+| R1 Orphan detection | Skills that exist but never activate |
+| R2 Duplicate detection | Same skill name in multiple directories |
+| R3 Trigger collision | Two skills matching the same input |
+| R4 Broken dependencies | Referenced scripts/files that don't exist |
+| R5 Stale endpoints | curl URLs returning 404/timeout |
+| R6 Missing env vars | $VAR references without matching environment |
+| R7 Cost estimation | Token budget per skill per session |
+
+**Total: 49 checks** (42 static + 7 runtime). Plus 29 documented anti-patterns with before/after examples.
 
 ## Scoring
 
@@ -66,6 +81,7 @@ skeall/
 ├── SKILL.md                    # Core skill (always loaded)
 ├── references/
 │   ├── anti-patterns.md        # 29 anti-patterns with before/after
+│   ├── healthcheck.md          # Runtime check algorithms and real examples
 │   ├── template.md             # Copy-paste SKILL.md template
 │   ├── scoring.md              # Scoring methodology details
 │   ├── testing.md              # Testing patterns and examples
@@ -81,7 +97,6 @@ Skeall was born from restructuring [0gfoundation/0g-compute-skills](https://gith
 - Reduced SKILL.md from 373 lines (~4,800 tokens) to 177 lines (~2,500 tokens)
 - Achieved 62% token savings through progressive disclosure
 
-
 ### Field testing: 22 production skills
 
 Skeall was used to audit 22 production skills across OpenClaw and custom skill directories:
@@ -92,7 +107,14 @@ Skeall was used to audit 22 production skills across OpenClaw and custom skill d
 - 1 credential detection check added (SEC5)
 - Average score improved from 5.2 to 7.8 after fixes
 
-This audit led to the addition of anti-patterns #27-#29 and scan check SEC5.
+Runtime healthcheck then surfaced what static linting missed:
+
+- 1 ghost skill found (installed for weeks, never activated)
+- 2 duplicate skills found across directories
+- 3 trigger collisions between similar skills
+- 4 skills with broken script dependencies
+
+Static linting catches formatting issues. Healthcheck catches the bugs that actually break your workflow.
 
 Research sources: [agentskills.io spec](https://agentskills.io), [Anthropic skills guide](https://claude.com/blog/complete-guide-to-building-skills-for-claude), [OpenAI Codex docs](https://developers.openai.com/codex/skills/), [OpenClaw docs](https://docs.openclaw.ai/tools/skills).
 

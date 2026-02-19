@@ -19,6 +19,9 @@ Create, improve, and audit Agent Skills following the [Agent Skills open standar
 /skeall --scan .              # Audit skill in current directory
 /skeall --scan-all            # Batch scan all skills in ~/.claude/skills/
 /skeall --scan-all <dir>      # Batch scan all skills in custom directory
+/skeall --healthcheck <path>  # Runtime check single skill (orphans, deps, env, URLs)
+/skeall --healthcheck-all     # Runtime check all skills in ~/.openclaw/skills/
+/skeall --healthcheck-all <dir> # Runtime check all skills in custom directory
 ```
 
 ---
@@ -298,6 +301,18 @@ skill-name/
 | X3 | MEDIUM | Internal links use standard markdown `[text](path)` |
 | X4 | LOW | README has multi-platform install paths |
 
+### Runtime checks (healthcheck mode only)
+
+| ID | Severity | Check |
+|----|----------|---------|
+| R1 | HIGH | Orphan skill: not referenced in any config or skill registry |
+| R2 | HIGH | Duplicate name: same `name` field found in 2+ skill directories |
+| R3 | HIGH | Trigger collision: description phrases 80%+ overlap with another skill |
+| R4 | HIGH | Broken dependency: file referenced in SKILL.md does not exist |
+| R5 | MEDIUM | Stale endpoint: URL in curl command returns 404 or times out |
+| R6 | MEDIUM | Missing env var: `$VAR` reference found but not set in environment |
+| R7 | LOW | Token cost: estimated tokens loaded per session |
+
 ## LLM-friendliness patterns
 
 These patterns come from real cross-platform testing. Apply them when creating or improving skills.
@@ -372,15 +387,7 @@ OpenAI Codex adds an optional `openai.yaml` file alongside SKILL.md for platform
 
 ## Token estimation
 
-Quick method to estimate tokens for a markdown file:
-
-```bash
-# Word count × 1.5 = approximate tokens
-wc -w SKILL.md
-# Example: 1,200 words × 1.5 = ~1,800 tokens
-```
-
-For code-heavy files, use 1.7x multiplier (code has more tokens per word).
+Estimate: `wc -w SKILL.md` × 1.5 (prose) or × 1.7 (code-heavy files).
 
 ### Budget allocation guide
 
@@ -437,6 +444,21 @@ Top issues across all skills:
 
 ---
 
+## Mode 5: Health check (runtime audit)
+
+Checks whether a skill actually works at runtime — beyond what static scan can catch. Run static scan (Mode 3) first and fix HIGH issues before health check.
+
+### Process
+
+1. Run R1-R7 checks against the target skill.
+2. For `--healthcheck-all`: cross-check all skills for duplicates (R2) and trigger collisions (R3).
+3. Output severity-tagged report with sections: RUNTIME, DUPLICATES, TRIGGER COLLISIONS.
+4. Labels: `[FAIL]` for HIGH issues (must fix), `[WARN]` for MEDIUM (runtime risk), `[INFO]` for LOW.
+
+For detection algorithms, report format examples, and batch output format, see [references/healthcheck.md](references/healthcheck.md).
+
+---
+
 ## Scoring methodology
 
 **Formula:** `Score = max(0, 10 - (HIGHs x 1.5) - min(MEDIUMs x 0.5, 3) - min(LOWs x 0.2, 1))`
@@ -457,43 +479,18 @@ Top issues across all skills:
 
 ---
 
-## Testing your skill
-
-After creating or improving a skill, test three things:
-
-1. **Trigger testing:** Does the skill activate on expected phrases? Try 3-5 variations of trigger keywords.
-2. **Functional testing:** Does the skill produce correct output? Run the main workflow end-to-end.
-3. **Negative testing:** Does the skill stay quiet on irrelevant queries? Try unrelated prompts.
-
-For detailed testing patterns and example test prompts, see [references/testing.md](references/testing.md).
-
----
-
-## MCP integration
-
-If a skill wraps MCP tools, always use fully qualified tool names (`mcp__server__tool_name`). Document required MCP servers and provide fallbacks for platforms without MCP. See [references/advanced-patterns.md](references/advanced-patterns.md) for naming patterns and dependency documentation.
-
----
-
-## Reprompter integration (optional)
-
-When creating a skill (`--create` mode), optionally use reprompter to optimize:
-
-1. **Description field**: After the interview, generate 3 description variants using reprompter's quality scoring. Pick the highest-scoring one.
-2. **Core rules**: Draft the rules, then score them for clarity and specificity. Target 8+/10.
-3. **Code examples**: If the skill has code patterns, reprompter validates they are specific and imperative.
-
-This is optional. If reprompter skill is not installed, skeall works standalone.
-
-To enable: after the create interview, say "reprompter optimize" or answer "yes" when skeall asks "Optimize with reprompter?"
-
----
-
 ## References
 
 For detailed checklists and examples, see:
 - [Anti-patterns with before/after examples](references/anti-patterns.md)
+- [Runtime health check algorithms and real examples](references/healthcheck.md)
 - [Complete SKILL.md template](references/template.md)
 - [Scoring methodology details](references/scoring.md)
 - [Testing patterns and examples](references/testing.md)
 - [Advanced patterns: categories, freedom levels, distribution, MCP, workflows](references/advanced-patterns.md)
+
+**Testing your skill:** After create or improve, test trigger activation (3-5 keyword variants), functional output, and negative (unrelated queries stay quiet). See [references/testing.md](references/testing.md).
+
+**MCP integration:** Use fully qualified tool names (`mcp__server__tool_name`). Document required MCP servers and provide fallbacks. See [references/advanced-patterns.md](references/advanced-patterns.md).
+
+**Reprompter integration (optional):** After `--create` interview, say "reprompter optimize" to score description variants and validate code examples. Works standalone if reprompter is not installed.
