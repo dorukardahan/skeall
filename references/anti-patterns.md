@@ -11,6 +11,7 @@ Real examples from auditing and restructuring production skills. Each pattern in
 - [Cross-platform anti-patterns](#cross-platform-anti-patterns) (#18-21)
 - [Maintenance anti-patterns](#maintenance-anti-patterns) (#22-23)
 - [Completeness anti-patterns](#completeness-anti-patterns) (#24-26)
+- [Security anti-patterns](#security-anti-patterns) (#27-29)
 
 ---
 
@@ -399,3 +400,106 @@ Provider health is inferred from service listing status.
 ```
 
 **Fix:** Verify every documented API, function, and method against actual source code. Remove phantom references. Add a note if data changes frequently: "Use `list` commands to check current state."
+
+---
+
+## Security anti-patterns
+
+### 27. Hardcoded credentials in skill files
+
+Real API keys, JWT tokens, or secrets written directly into SKILL.md. Found in 4 of 22 production skills audited — including HA JWT tokens and API keys committed and visible to anyone with repo access.
+
+```markdown
+# BAD — real credential in SKILL.md
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi..." \
+  http://homeassistant.local/api/states
+
+# GOOD — environment variable reference
+curl -H "Authorization: Bearer $HA_TOKEN" \
+  http://homeassistant.local/api/states
+```
+
+**Fix:** Always reference environment variables by name. Never put real tokens in SKILL.md, even for "local only" or "personal" skills — skill files get committed to git, synced, and shared. Add a setup section documenting which env vars are required and how to set them.
+
+```markdown
+## Setup
+
+Set required environment variables before using this skill:
+
+    export HA_TOKEN="your-home-assistant-token"
+    export HA_URL="http://homeassistant.local"
+```
+
+### 28. Silent skill deactivation from name/directory mismatch
+
+The `name` field in SKILL.md frontmatter does not match the parent directory name. The platform cannot locate the skill by name, so it silently ignores it. The skill appears installed but never activates — no error, no warning.
+
+Found in 3 of 22 production skills audited. This is the sneakiest bug in the list.
+
+```yaml
+# BAD — directory is home-assistant/, but name says homeassistant
+# The platform looks for a skill named "homeassistant" in a directory
+# named "homeassistant" — it never finds it.
+---
+name: homeassistant
+description: Home Assistant control skill.
+---
+```
+
+```yaml
+# GOOD — name matches directory exactly
+# Directory: home-assistant/
+# Name: home-assistant
+---
+name: home-assistant
+description: Home Assistant control skill.
+---
+```
+
+**Fix:** The `name` field must be an exact match for the parent directory name — same hyphens, same casing (lowercase). When renaming one, always update the other. Run `--scan` after any rename; S8 catches this.
+
+Common mismatch patterns:
+
+| Directory name | Wrong `name` value | Correct `name` value |
+|---|---|---|
+| `home-assistant/` | `homeassistant` | `home-assistant` |
+| `self-improving-agent/` | `self-improvement` | `self-improving-agent` |
+| `denizevi-speakers/` | `denizevi` | `denizevi-speakers` |
+
+### 29. Platform-specific path placeholders
+
+Using `{baseDir}` or similar template variables that only one platform resolves. Skills with `{baseDir}` work on OpenClaw but silently fail everywhere else — the placeholder is treated as a literal string.
+
+Found in 2 of 22 production skills audited, with `{baseDir}` appearing 8–13 times per skill.
+
+```markdown
+# BAD — only OpenClaw resolves {baseDir}
+Run the analysis script:
+
+    bash {baseDir}/scripts/analyze.sh
+
+Load the config from `{baseDir}/references/config.json`.
+```
+
+```markdown
+# GOOD — relative path from SKILL.md, works everywhere
+Run the analysis script:
+
+    bash scripts/analyze.sh
+
+Load the config from `references/config.json`.
+```
+
+**Fix:** Use relative paths from the SKILL.md location. If an absolute path is unavoidable (e.g., cron jobs, system scripts), document it in a setup section rather than inline in instructions:
+
+```markdown
+## Setup
+
+After cloning, note the full path to this skill directory and set it as an env var:
+
+    export SKILL_DIR="/path/to/my-skill"
+
+All script references in this skill are relative to that path.
+```
+
+**Do not use:** `{baseDir}`, `${SKILL_ROOT}`, `$SKILL_PATH`, or any other placeholder that requires platform-specific resolution.
