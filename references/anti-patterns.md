@@ -10,6 +10,7 @@ Real examples from auditing and restructuring production skills. Each pattern in
 - [LLM-friendliness anti-patterns](#llm-friendliness-anti-patterns) (#11-17)
 - [Cross-platform anti-patterns](#cross-platform-anti-patterns) (#18-21)
 - [Maintenance anti-patterns](#maintenance-anti-patterns) (#22-23)
+- [Completeness anti-patterns](#completeness-anti-patterns) (#24-26)
 
 ---
 
@@ -335,3 +336,66 @@ my-skill/
 ```
 
 **Fix:** Move files to `references/` at skill root. Update all internal links.
+
+---
+
+## Completeness anti-patterns
+
+### 24. Incomplete routing table (C9)
+
+SKILL.md has a routing table but it doesn't cover all files in references/.
+
+```markdown
+# BAD -- references/ has 5 files, routing table lists 3
+## References
+- [API guide](references/api.md)
+- [Examples](references/examples.md)
+- [Config](references/config.md)
+
+# (references/troubleshooting.md and references/migration.md exist but aren't listed)
+
+# GOOD -- every file in references/ appears in routing table
+## References
+- [API guide](references/api.md)
+- [Examples](references/examples.md)
+- [Config](references/config.md)
+- [Troubleshooting](references/troubleshooting.md)
+- [Migration guide](references/migration.md)
+```
+
+**Fix:** List the contents of references/ and verify each file appears in the routing table. Add missing entries.
+
+### 25. Count mismatch between claims and content (C10)
+
+Description or body claims a specific number that doesn't match reality.
+
+```yaml
+# BAD -- description says 34 but body only has 28
+description: Detects and removes 34 AI writing patterns from blog content.
+# (actual patterns numbered 1-28 in the body)
+
+# GOOD -- count matches
+description: Detects and removes 28 AI writing patterns from blog content.
+# (patterns 1-28 documented in body and references)
+```
+
+**Fix:** Search for numeric claims in description and body. Count the actual items. Update the claim or add the missing items.
+
+### 26. Stale API/function references (C11)
+
+Documenting functions, model names, or versions that no longer exist.
+
+```markdown
+# BAD -- function doesn't exist in actual SDK
+## Health monitoring
+Call `getProviderHealth(address)` to check provider status.
+
+# (SDK source code has no getProviderHealth function -- it was removed in v2)
+
+# GOOD -- verified against source
+## Health monitoring
+Call `listServiceWithDetail()` to check provider availability.
+Provider health is inferred from service listing status.
+```
+
+**Fix:** Verify every documented API, function, and method against actual source code. Remove phantom references. Add a note if data changes frequently: "Use `list` commands to check current state."

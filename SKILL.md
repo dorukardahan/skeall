@@ -262,6 +262,9 @@ skill-name/
 | C6 | MEDIUM | Has routing table to reference files (if references/ exists) |
 | C7 | MEDIUM | Troubleshooting section present (for skills with code blocks or CLI commands) |
 | C8 | LOW | No deprecated content at the top (wastes prime token space) |
+| C9 | MEDIUM | Routing table completeness: if references/ exists, SKILL.md lists ALL files in references/ |
+| C10 | MEDIUM | Internal count consistency: claimed counts ("34 patterns", "8 phases") match actual content |
+| C11 | MEDIUM | No stale references: documented APIs, functions, model names exist in actual source |
 
 ### LLM-friendliness checks
 
@@ -271,7 +274,7 @@ skill-name/
 | L2 | HIGH | Imperative instructions ("Do X", not "You should consider X") |
 | L3 | MEDIUM | No emoji in headings or structural markers |
 | L4 | MEDIUM | No Unicode arrows or special characters for data flow |
-| L5 | MEDIUM | Consistent heading hierarchy (no skipped levels) |
+| L5 | MEDIUM | Consistent heading hierarchy (no skipped levels). Ignore headings inside fenced code blocks |
 | L6 | MEDIUM | Code blocks have language tags |
 | L7 | LOW | Sentence case headings (not Title Case) |
 | L8 | LOW | No nested blockquotes (some LLMs parse poorly) |
@@ -293,8 +296,6 @@ skill-name/
 | X2 | MEDIUM | Relative paths from SKILL.md to references/ |
 | X3 | MEDIUM | Internal links use standard markdown `[text](path)` |
 | X4 | LOW | README has multi-platform install paths |
-
----
 
 ## LLM-friendliness patterns
 
@@ -345,6 +346,7 @@ description: 0G Compute Network guide for decentralized AI inference and fine-tu
 ### Universal format (works everywhere)
 
 Only `name` and `description` in frontmatter. Standard markdown body. Relative paths. No platform-specific syntax.
+
 ### Platform discovery paths
 
 | Platform | User-wide | Project |
@@ -388,8 +390,6 @@ For code-heavy files, use 1.7x multiplier (code has more tokens per word).
 | Simple (one topic, few commands) | 100-200 lines / ~1500 tokens | No |
 | Medium (multiple features, some code) | 200-350 lines / ~3000 tokens | 1-2 files |
 | Complex (multi-domain, many patterns) | 300-450 lines / ~4500 tokens | 3-5 files |
-
----
 
 ## Severity reference
 

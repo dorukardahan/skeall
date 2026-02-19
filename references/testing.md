@@ -108,6 +108,45 @@ Use this after creating or improving a skill:
 | 7 | Tested with at least 2 model tiers (e.g., Haiku + Opus) | |
 | 8 | Test scenarios created BEFORE skill instructions were written | |
 
+## Test scenarios for completeness checks (C9-C11)
+
+### C9: Routing table completeness
+
+Create a skill with references/ containing 3 files but only 2 listed in the routing table.
+
+```text
+test-skill/
+├── SKILL.md          # routing table lists api.md and examples.md
+└── references/
+    ├── api.md
+    ├── examples.md
+    └── config.md     # NOT in routing table
+```
+
+**Expected:** Scan reports `[WARN] C9 MEDIUM -- references/config.md not listed in routing table`
+
+### C10: Internal count consistency
+
+Create a skill whose description says "covers 6 modules" but body only documents 4.
+
+```yaml
+description: API testing tool covering 6 modules.
+```
+
+Body contains: `## Module 1`, `## Module 2`, `## Module 3`, `## Module 4` (only 4).
+
+**Expected:** Scan reports `[WARN] C10 MEDIUM -- Description claims 6 modules, body contains 4`
+
+### C11: Stale references
+
+Create a skill documenting a function `getUserProfile()` that doesn't exist in the referenced SDK.
+
+**Expected:** Scan reports `[WARN] C11 MEDIUM -- getUserProfile() not found in referenced source. Verify against actual SDK.`
+
+**Note:** C11 is a best-effort check. Flag suspicious patterns (phantom-sounding function names, very old version numbers) but don't require full SDK verification during automated scans.
+
+---
+
 ## Common testing pitfalls
 
 | Pitfall | Fix |
