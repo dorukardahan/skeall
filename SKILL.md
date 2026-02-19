@@ -287,6 +287,7 @@ skill-name/
 | SEC2 | HIGH | Name does not contain reserved words ("anthropic", "claude") |
 | SEC3 | HIGH | No hardcoded API keys, tokens, or secrets in any skill file |
 | SEC4 | MEDIUM | Scripts include error handling (not bare commands) |
+| SEC5 | HIGH | No credential patterns: `Bearer eyJ` (JWT), `sk-`/`pk-` prefixes, `api_key=`/`token=` followed by long alphanumeric strings — not triggered by `$ENV_VAR` references or placeholders like `YOUR_KEY_HERE` |
 
 ### Cross-platform checks
 

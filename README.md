@@ -35,7 +35,7 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 
 ## What it checks
 
-38 checklist items across 6 categories:
+42 checklist items across 6 categories:
 
 | Category | Checks | Examples |
 |----------|--------|---------|
@@ -43,10 +43,10 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 | Frontmatter | 6 | Description length (spec + recommended), trigger phrases, naming |
 | Content | 8 | Token budget, redundancy, framing style |
 | LLM-friendliness | 8 | Tables vs bullets, emoji, heading style |
-| Security | 4 | No XML injection, no reserved names, no secrets |
+| Security | 5 | No XML injection, no reserved names, no secrets, credential pattern detection |
 | Cross-platform | 4 | No baseDir, relative paths, standard links |
 
-Plus 23 documented anti-patterns with before/after examples.
+Plus 29 documented anti-patterns with before/after examples.
 
 ## Scoring
 
@@ -65,7 +65,7 @@ Base score: 10. Deductions: HIGH (-1.5), MEDIUM (-0.5, capped at -3), LOW (-0.2,
 skeall/
 ├── SKILL.md                    # Core skill (always loaded)
 ├── references/
-│   ├── anti-patterns.md        # 23 anti-patterns with before/after
+│   ├── anti-patterns.md        # 29 anti-patterns with before/after
 │   ├── template.md             # Copy-paste SKILL.md template
 │   ├── scoring.md              # Scoring methodology details
 │   ├── testing.md              # Testing patterns and examples
@@ -80,6 +80,19 @@ Skeall was born from restructuring [0gfoundation/0g-compute-skills](https://gith
 - Restructured from flat layout to Agent Skills standard (references/ directory)
 - Reduced SKILL.md from 373 lines (~4,800 tokens) to 177 lines (~2,500 tokens)
 - Achieved 62% token savings through progressive disclosure
+
+
+### Field testing: 22 production skills
+
+Skeall was used to audit 22 production skills across OpenClaw and custom skill directories:
+
+- **22 skills scanned**, 14 needed work, 8 passed
+- Top issues found: hardcoded credentials (4 skills), name/directory mismatches (3), platform-specific placeholders (2)
+- 3 new anti-patterns documented from findings (#27-#29)
+- 1 credential detection check added (SEC5)
+- Average score improved from 5.2 to 7.8 after fixes
+
+This audit led to the addition of anti-patterns #27-#29 and scan check SEC5.
 
 Research sources: [agentskills.io spec](https://agentskills.io), [Anthropic skills guide](https://claude.com/blog/complete-guide-to-building-skills-for-claude), [OpenAI Codex docs](https://developers.openai.com/codex/skills/), [OpenClaw docs](https://docs.openclaw.ai/tools/skills).
 
