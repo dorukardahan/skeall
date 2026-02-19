@@ -1,0 +1,84 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: latest_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Latest tag: $TAG"
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          LATEST="${{ steps.latest_tag.outputs.tag }}"
+          MAJOR=$(echo "$LATEST" | sed 's/v//' | cut -d. -f1)
+          MINOR=$(echo "$LATEST" | sed 's/v//' | cut -d. -f2)
+          PATCH=$(echo "$LATEST" | sed 's/v//' | cut -d. -f3)
+
+          # Get commits since last tag
+          COMMITS=$(git log "$LATEST"..HEAD --oneline 2>/dev/null || git log --oneline)
+
+          if echo "$COMMITS" | grep -qiE "^[a-f0-9]+ (breaking|BREAKING)"; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif echo "$COMMITS" | grep -qiE "^[a-f0-9]+ (feat|add|new)"; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          echo "Bumping $LATEST -> $NEW_TAG"
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.bump.outputs.new_tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate changelog
+        if: steps.check_tag.outputs.exists == 'false'
+        id: changelog
+        run: |
+          LATEST="${{ steps.latest_tag.outputs.tag }}"
+          {
+            echo 'notes<<CHANGELOG_EOF'
+            echo "## Changes since $LATEST"
+            echo ""
+            git log "$LATEST"..HEAD --pretty=format:"- %s (%h)" 2>/dev/null || git log --pretty=format:"- %s (%h)"
+            echo ""
+            echo ""
+            echo "**Full diff:** [\`$LATEST...${{ steps.bump.outputs.new_tag }}\`](https://github.com/${{ github.repository }}/compare/$LATEST...${{ steps.bump.outputs.new_tag }})"
+            echo 'CHANGELOG_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        if: steps.check_tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.bump.outputs.new_tag }}" \
+            --title "${{ steps.bump.outputs.new_tag }}" \
+            --notes "${{ steps.changelog.outputs.notes }}" \
+            --target "${{ github.sha }}"
