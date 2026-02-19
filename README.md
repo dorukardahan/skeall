@@ -116,6 +116,12 @@ Runtime healthcheck then surfaced what static linting missed:
 
 Static linting catches formatting issues. Healthcheck catches the bugs that actually break your workflow.
 
+### Paired with RePrompter
+
+The audit agents, self-review teams, and skill restructuring work above were all orchestrated through [RePrompter](https://github.com/AytuncYildizli/reprompter) — a prompt engineering skill that turns rough instructions into structured, scored agent prompts. Every multi-agent run in skeall's development used RePrompter's Repromptception mode to generate per-agent prompts, score them (target 8+/10), and retry on misses.
+
+Skeall's `--create` mode optionally hands off to RePrompter for description optimization after scaffolding. If you're building skills and want tighter prompts, it's worth having both installed.
+
 Research sources: [agentskills.io spec](https://agentskills.io), [Anthropic skills guide](https://claude.com/blog/complete-guide-to-building-skills-for-claude), [OpenAI Codex docs](https://developers.openai.com/codex/skills/), [OpenClaw docs](https://docs.openclaw.ai/tools/skills).
 
 ## License
