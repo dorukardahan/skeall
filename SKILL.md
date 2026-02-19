@@ -287,7 +287,7 @@ skill-name/
 | SEC2 | HIGH | Name does not contain reserved words ("anthropic", "claude") |
 | SEC3 | HIGH | No hardcoded API keys, tokens, or secrets in any skill file |
 | SEC4 | MEDIUM | Scripts include error handling (not bare commands) |
-| SEC5 | HIGH | No credential patterns: `Bearer eyJ` (JWT), `sk-`/`pk-` prefixes, `api_key=`/`token=` followed by long alphanumeric strings — not triggered by `$ENV_VAR` references or placeholders like `YOUR_KEY_HERE` |
+| SEC5 | HIGH | No credential patterns (`Bearer eyJ`, `sk-`/`pk-` prefixes, `api_key=`/`token=` + long strings). Ignore `$ENV_VAR` refs and `YOUR_KEY_HERE` placeholders |
 
 ### Cross-platform checks
 
@@ -369,8 +369,6 @@ OpenAI Codex adds an optional `openai.yaml` file alongside SKILL.md for platform
 | `{baseDir}` placeholder | Only OpenClaw resolves it | Use relative paths |
 | Platform-specific instructions | Confuse other LLMs | Keep instructions generic |
 | Hardcoded paths | Break on other OS/platforms | Use relative from SKILL.md |
-
----
 
 ## Token estimation
 

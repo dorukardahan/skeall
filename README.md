@@ -41,7 +41,7 @@ git clone https://github.com/dorukardahan/skeall ~/.openclaw/skills/skeall
 |----------|--------|---------|
 | Structure | 8 | SKILL.md exists, name matches dir, references/ dir, no junk files |
 | Frontmatter | 6 | Description length (spec + recommended), trigger phrases, naming |
-| Content | 8 | Token budget, redundancy, framing style |
+| Content | 11 | Token budget, redundancy, framing style, routing table, count consistency, stale refs |
 | LLM-friendliness | 8 | Tables vs bullets, emoji, heading style |
 | Security | 5 | No XML injection, no reserved names, no secrets, credential pattern detection |
 | Cross-platform | 4 | No baseDir, relative paths, standard links |
