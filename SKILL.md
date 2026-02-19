@@ -275,7 +275,7 @@ skill-name/
 |----|----------|-------|
 | L1 | HIGH | Tables for structured data (not bullet lists with arrows) |
 | L2 | HIGH | Imperative instructions ("Do X", not "You should consider X") |
-| L3 | MEDIUM | No emoji in headings or structural markers |
+| L3 | MEDIUM | No emoji in headings or structural markers (frontmatter metadata values are data, not markers) |
 | L4 | MEDIUM | No Unicode arrows or special characters for data flow |
 | L5 | MEDIUM | Consistent heading hierarchy (no skipped levels). Ignore headings inside fenced code blocks |
 | L6 | MEDIUM | Code blocks have language tags |
@@ -332,7 +332,7 @@ These patterns come from real cross-platform testing. Apply them when creating o
 ### Do not
 
 - **Persona-based framing**: "You are an expert in..." (Claude-leaning, other LLMs respond better to instructions)
-- **Emoji markers** in headings or structural elements (token-expensive, parsed inconsistently)
+- **Emoji markers** in headings or structural elements (token-expensive, parsed inconsistently). Emoji in frontmatter `metadata` values is data and acceptable
 - **Unicode arrows** (→, ←) for data flow — use tables or plain prose
 - **Blockquote warnings at top** of SKILL.md (wastes prime token space, primes distrust)
 - **"When Users Ask" checklists** with 10+ items (bury critical rules, use tables instead)
